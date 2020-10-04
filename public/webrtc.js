@@ -278,7 +278,7 @@ function updateUsername(element, event) {
     }
 }
 
-function appendMessage(avatar, username, message) {
+function appendMessage(avatar, username, message, transformed, rawMessage) {
     let replaced = message.replace("\n", "<br/>");
     let chatbox = document.querySelector(".chat-content");
     chatbox.innerHTML = (chatbox.innerHTML || "") + `
@@ -291,6 +291,10 @@ function appendMessage(avatar, username, message) {
     </div>
     `
     chatbox.scrollTop = chatbox.scrollHeight
+
+    if(!transformed){
+        socket.emit("send-notification", rawMessage, username)
+    }
 }
 
 
@@ -315,8 +319,8 @@ function pageReady() {
 
                 socket = io.connect(config.host, {secure: true});
                 socket.on('signal', gotMessageFromServer);
-                socket.on('message', function (id, avatar, data) {
-                    appendMessage(avatar, data.username, data.message)
+                socket.on('message', function (id, avatar, data, transformed, rawMessage) {
+                    appendMessage(avatar, data.username, data.message, transformed, rawMessage)
                 })
 
                 socket.on('connect', function () {

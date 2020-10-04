@@ -4,6 +4,9 @@ var app = module.exports = express.createServer();
 const chat = require('./chat.js');
 var io = require('socket.io')(app);
 const assets = require('./avatars')
+const notifier = require('node-notifier');
+const { notify } = require('node-notifier');
+const path = require('path');
 const AVATAR_IMAGE = assets.icons
 const CSS_COLOR_NAMES = assets.colors
 let avatars = {}
@@ -34,7 +37,19 @@ io.on('connection', function (socket) {
         io.sockets.emit("message", socket.id, processed.avatar, {
             username: processed.author,
             message: processed.message
-        });
+        }, processed.transformed, data.message);
+    });
+
+    socket.on("send-notification", async (message, user) => {
+        console.log(__dirname);
+        notifier.notify(
+            {
+              title: 'New message in Topaz',
+              message: user + " say: " + message,
+              icon: path.join(__dirname, '/public/favicon.ico'), // Absolute path (doesn't work on balloons)
+              appID: "Topaz"
+            }
+        )
     })
 
     socket.on("sound-status-changed", status => {
